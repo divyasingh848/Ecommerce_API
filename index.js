@@ -2,15 +2,18 @@ const mongoose = require('mongoose')
 const uri = 'mongodb+srv://divyasingh848:wkgU6cpaSf2pK5iD@cluster0.dfqbw.mongodb.net/'
 const dbname = 'Ecommerce'
 const express = require('express')
+const cors =require('cors')
+
+
 
 //initializing express app
 const app = express()
-
+app.use(cors())
 //intilizaing the server
 app.listen(3000, ()=>{console.log('server listening on port 3000')})
 
 //importing the schema model
-const ProductCategory = require('./models');
+const productCat = require('./models');
 const SignUP = require('./SignUp')
 const ShopProduct = require('./shopModel');
 //paersing the data when being communicated from express server to mongoDB
@@ -34,43 +37,43 @@ app.post('/user',(req,res)=>{
 })
 
 //adding a product to ecommerce DB
-//adding a product to ecommerce DB using GET
-app.get('/models', (req, res) => {
-   let id = req.query.id;
-   let title = req.query.title;
-   let imageURL = req.query.imageURL;
 
-   let newProduct = new ProductCategory({
-       id: id,
-       title: title,
-       imageURL: imageURL
-   });
-   newProduct.save()
-       .then((product) => { res.send(product); })
-       .catch((err) => { console.log(err); })
-});
+app.get('/product-categories', async (req, res) => {
+    try {
+       const products = await productCat.find();
+   
+    res.status(200).send({
+        status:"success",
+        results:products.length,
+        data:{
+            products
+        }
+    })
+    } catch (err) {
+       console.log('Error fetching products:', err);
+       res.status(500).send('Server error');
+    }
+ });
+
 
 //adding a shop to ecommerce DB
-app.get('/shop', (req, res) => {
-   let id = req.query.id;
-   let title = req.query.title;
-   let routeName = req.query.routeName;
-   let name = req.query.name;
-   let imageURL = req.query.imageURL;
-   let price = req.query.price;
+app.get('/shopModel', async (req, res) => {
+    try {
+       const shopItems = await ShopProduct.find();
+   
+    res.status(200).send({
+        status:"success",
+        results:shopItems.length,
+        data:{
+            shopItems
+        }
+    })
+    } catch (err) {
+       console.log('Error fetching products:', err);
+       res.status(500).send('Server error');
+    }
+ });
 
-   let newShop = new ShopProduct({
-       id: id,
-       routeName: routeName,
-       title: title,
-       imageURL: imageURL,
-       name: name,
-       price: price
-   });
-   newShop.save()
-       .then((shop) => { res.send(shop); })
-       .catch((err) => { console.log(err); })
-});
 
 //URI connection
 mongoose
@@ -88,4 +91,3 @@ process.on('SIGINT', async ()=>{
     await mongoose.connection.close()
     process.exit(0);
 })
-
